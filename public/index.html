@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smart Ticket Deduplicator — AI-powered duplicate ticket detection using semantic similarity and LLM verdict analysis.">
+  <meta name="theme-color" content="#060a14">
+  <meta name="color-scheme" content="dark">
+  <title>Smart Ticket Deduplicator — AI-Powered Duplicate Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Ambient background orbs -->
+  <div class="ambient-orbs" aria-hidden="true">
+    <div class="orb orb--indigo"></div>
+    <div class="orb orb--purple"></div>
+    <div class="orb orb--blue"></div>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <div class="sidebar__logo">
+        <span class="sidebar__logo-icon" aria-hidden="true">🎫</span>
+        <div class="sidebar__logo-text">
+          <h1 class="sidebar__title">Smart Ticket Deduplicator</h1>
+          <span class="sidebar__subtitle">AI-Powered Detection</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Main navigation">
+      <ul class="sidebar__nav-list" role="list">
+        <li>
+          <button class="sidebar__nav-item sidebar__nav-item--active" id="nav-dashboard" type="button" aria-current="page">
+            <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+        </li>
+        <li>
+          <button class="sidebar__nav-item" id="nav-new-ticket" type="button">
+            <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span>New Ticket</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar__separator" aria-hidden="true"></div>
+
+    <section class="sidebar__stats" id="sidebar-stats" aria-label="Ticket statistics">
+      <h2 class="sidebar__stats-title">Statistics</h2>
+      <div class="sidebar__stat-row">
+        <span class="sidebar__stat-label">Total Tickets</span>
+        <span class="sidebar__stat-value" id="sidebar-ticket-count">0</span>
+      </div>
+      <div class="sidebar__stat-row">
+        <span class="sidebar__stat-label">Categories</span>
+        <div class="sidebar__stat-bars" id="sidebar-category-bars"></div>
+      </div>
+    </section>
+
+    <div class="sidebar__footer">
+      <button class="btn btn--secondary btn--full-width" id="seed-data-btn" type="button">
+        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v18"/>
+          <path d="M8 7c0 0 1.5-4 4-4s4 4 4 4"/>
+          <path d="M6 13c0 0 2-3 6-3s6 3 6 3"/>
+          <path d="M4 19c0 0 3-3 8-3s8 3 8 3"/>
+        </svg>
+        Seed Demo Data
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile sidebar toggle -->
+  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Main Content Area -->
+  <main class="main-content" id="main-content">
+
+    <!-- Toast notification container -->
+    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Dashboard View -->
+    <section class="view" id="dashboard-view" aria-labelledby="dashboard-heading">
+      <header class="view__header">
+        <div class="view__header-left">
+          <h2 class="view__title" id="dashboard-heading">All Tickets</h2>
+          <span class="view__count-badge" id="ticket-count-badge">0</span>
+        </div>
+      </header>
+
+      <div class="filter-bar" role="group" aria-label="Filter tickets by category">
+        <button class="filter-pill filter-pill--active" data-filter="All" type="button">All</button>
+        <button class="filter-pill" data-filter="Bug" type="button">
+          <span class="filter-pill__dot filter-pill__dot--bug" aria-hidden="true"></span>Bug
+        </button>
+        <button class="filter-pill" data-filter="Feature Request" type="button">
+          <span class="filter-pill__dot filter-pill__dot--feature" aria-hidden="true"></span>Feature Request
+        </button>
+        <button class="filter-pill" data-filter="Question" type="button">
+          <span class="filter-pill__dot filter-pill__dot--question" aria-hidden="true"></span>Question
+        </button>
+      </div>
+
+      <div class="tickets-grid" id="tickets-grid"></div>
+
+      <div class="empty-state" id="empty-state" hidden>
+        <div class="empty-state__icon" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="20" y="15" width="80" height="90" rx="8" stroke-opacity="0.3"/>
+            <rect x="28" y="30" width="50" height="6" rx="3" stroke-opacity="0.2"/>
+            <rect x="28" y="44" width="64" height="4" rx="2" stroke-opacity="0.15"/>
+            <rect x="28" y="54" width="55" height="4" rx="2" stroke-opacity="0.15"/>
+            <rect x="28" y="64" width="40" height="4" rx="2" stroke-opacity="0.15"/>
+            <circle cx="85" cy="85" r="25" stroke-opacity="0.25"/>
+            <line x1="75" y1="85" x2="95" y2="85" stroke-opacity="0.2"/>
+          </svg>
+        </div>
+        <h3 class="empty-state__title">No tickets yet</h3>
+        <p class="empty-state__text">Create a new ticket or seed demo data to get started.</p>
+      </div>
+    </section>
+
+    <!-- New Ticket View -->
+    <section class="view view--hidden" id="new-ticket-view" aria-labelledby="new-ticket-heading">
+      <header class="view__header">
+        <h2 class="view__title" id="new-ticket-heading">Create New Ticket</h2>
+      </header>
+
+      <form class="ticket-form glass-card" id="new-ticket-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="ticket-title">Title</label>
+          <input
+            class="form-input"
+            type="text"
+            id="ticket-title"
+            name="title"
+            placeholder="Brief summary of the issue…"
+            required
+            autocomplete="off"
+          >
+          <span class="form-error" id="ticket-title-error" hidden>Please enter a ticket title.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ticket-description">Description</label>
+          <textarea
+            class="form-input form-input--textarea"
+            id="ticket-description"
+            name="description"
+            rows="5"
+            placeholder="Detailed description of the issue, steps to reproduce, expected behavior…"
+            required
+          ></textarea>
+          <span class="form-error" id="ticket-description-error" hidden>Please enter a description.</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group form-group--half">
+            <label class="form-label" for="ticket-category">Category</label>
+            <div class="form-select-wrapper">
+              <select class="form-input form-input--select" id="ticket-category" name="category" required>
+                <option value="" disabled selected>Select category…</option>
+                <option value="Bug">Bug</option>
+                <option value="Feature Request">Feature Request</option>
+                <option value="Question">Question</option>
+              </select>
+              <svg class="form-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="form-group form-group--half">
+            <label class="form-label" for="ticket-priority">Priority</label>
+            <div class="form-select-wrapper">
+              <select class="form-input form-input--select" id="ticket-priority" name="priority" required>
+                <option value="" disabled selected>Select priority…</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+              <svg class="form-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn--primary btn--full-width" id="submit-ticket-btn" type="submit">
+          <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          Create &amp; Check for Duplicates
+        </button>
+      </form>
+
+      <!-- Results Panel -->
+      <div class="results-panel" id="results-panel" hidden>
+
+        <!-- Loading State -->
+        <div class="results-loading" id="results-loading" hidden>
+          <div class="spinner" aria-hidden="true">
+            <div class="spinner__ring"></div>
+          </div>
+          <p class="results-loading__text" id="loading-status-text">Analyzing ticket for duplicates…</p>
+        </div>
+
+        <!-- Results Content -->
+        <div class="results-content" id="results-content" hidden>
+
+          <!-- Recommendation Banner -->
+          <div class="recommendation-banner" id="recommendation-banner" role="alert">
+            <span class="recommendation-banner__icon" id="recommendation-icon" aria-hidden="true"></span>
+            <div class="recommendation-banner__text">
+              <strong class="recommendation-banner__title" id="recommendation-title"></strong>
+              <span class="recommendation-banner__desc" id="recommendation-desc"></span>
+            </div>
+          </div>
+
+          <!-- Duplicate Candidates -->
+          <div class="duplicates-section" id="duplicates-section" hidden>
+            <h3 class="duplicates-section__title">Potential Duplicates Found</h3>
+            <div class="duplicates-grid" id="duplicates-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
