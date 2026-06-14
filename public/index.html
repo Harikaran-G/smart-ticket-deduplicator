@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Ticket Deduplicator — Support Triage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <!-- Background Ambient Glows -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>TriageAI</h1>
+          <p>Smart Deduplicator</p>
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="stats-section">
+        <div class="stat-card total-stat">
+          <span class="stat-label">Total Tickets</span>
+          <span id="total-count" class="stat-value">0</span>
+        </div>
+
+        <div class="stat-group">
+          <h3>Categories</h3>
+          <div id="category-stats" class="progress-list">
+            <div class="progress-item" data-category="Bug">
+              <div class="progress-label">
+                <span>Bug</span>
+                <span class="count" id="count-bug">0</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar bar-bug" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="progress-item" data-category="Feature Request">
+              <div class="progress-label">
+                <span>Feature Request</span>
+                <span class="count" id="count-feature">0</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar bar-feature" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="progress-item" data-category="Question">
+              <div class="progress-label">
+                <span>Question</span>
+                <span class="count" id="count-question">0</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar bar-question" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-group">
+          <h3>Priority Split</h3>
+          <div class="priority-badges" id="priority-stats">
+            <div class="priority-badge urgent">
+              <span class="dot"></span>
+              <span class="p-label">Urgent</span>
+              <span class="p-count" id="count-urgent">0</span>
+            </div>
+            <div class="priority-badge high">
+              <span class="dot"></span>
+              <span class="p-label">High</span>
+              <span class="p-count" id="count-high">0</span>
+            </div>
+            <div class="priority-badge medium">
+              <span class="dot"></span>
+              <span class="p-label">Medium</span>
+              <span class="p-count" id="count-medium">0</span>
+            </div>
+            <div class="priority-badge low">
+              <span class="dot"></span>
+              <span class="p-label">Low</span>
+              <span class="p-count" id="count-low">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deduplication Settings -->
+      <div class="stat-group dedupe-settings">
+        <h3>Deduplication Engine</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Scan Window (Last N)</span>
+            <span class="setting-value" id="val-limit-n">50</span>
+          </div>
+          <input type="range" id="input-limit-n" min="5" max="200" step="5" value="50" class="premium-slider">
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>Similarity Threshold</span>
+            <span class="setting-value" id="val-threshold">0.55</span>
+          </div>
+          <input type="range" id="input-threshold" min="0.40" max="0.95" step="0.05" value="0.55" class="premium-slider">
+        </div>
+      </div>
+
+      <!-- Fine-Tune Model -->
+      <div class="stat-group fine-tune-section">
+        <h3>LLM Model Training</h3>
+        <div class="fine-tune-card glass">
+          <p>Export your ticket database to Google Gemini Supervised Fine-Tuning (SFT) format to train custom models.</p>
+          <button id="btn-export-training" class="btn btn-gradient btn-block">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Export SFT Dataset
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar Actions -->
+      <div class="sidebar-actions">
+        <button id="btn-seed" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          Seed Database
+        </button>
+        <button id="btn-clear" class="btn btn-danger-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Clear DB
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-workspace">
+      <!-- Workspace Header -->
+      <header class="workspace-header">
+        <div class="header-titles">
+          <h2>Dashboard</h2>
+          <p id="stats-summary-text">Displaying tickets matching filters</p>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters-row">
+          <div class="category-filters">
+            <button class="filter-chip active" data-category="All">All</button>
+            <button class="filter-chip" data-category="Bug">Bug</button>
+            <button class="filter-chip" data-category="Feature Request">Feature Request</button>
+            <button class="filter-chip" data-category="Question">Question</button>
+          </div>
+          
+          <button id="btn-open-modal" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Ticket
+          </button>
+        </div>
+      </header>
+
+      <!-- Tickets Grid/List -->
+      <div id="tickets-container" class="tickets-grid">
+        <!-- Ticket cards will be loaded here dynamically -->
+        <div class="empty-state">
+          <div class="empty-icon">📂</div>
+          <h3>No Tickets Loaded</h3>
+          <p>Database is empty. Click "Seed Database" in the sidebar to populate sample data or "+ New Ticket" to submit your first request.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal overlay -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content glass">
+      <button id="btn-close-modal" class="modal-close-btn">&times;</button>
+      
+      <div class="modal-layout">
+        <!-- Form Column -->
+        <div class="modal-form-col">
+          <h2 class="modal-title">Submit Support Ticket</h2>
+          <form id="new-ticket-form">
+            <div class="form-group">
+              <label for="ticket-title">Title</label>
+              <input type="text" id="ticket-title" placeholder="Describe the issue in a few words..." required>
+            </div>
+            
+            <div class="form-group">
+              <label for="ticket-desc">Description</label>
+              <textarea id="ticket-desc" rows="5" placeholder="Provide details, steps to reproduce, or requirements..." required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="ticket-category">Category</label>
+                <select id="ticket-category">
+                  <option value="Bug">Bug</option>
+                  <option value="Feature Request">Feature Request</option>
+                  <option value="Question">Question</option>
+                </select>
+              </div>
+
+              <div class="form-group col-half">
+                <label for="ticket-priority">Priority</label>
+                <select id="ticket-priority">
+                  <option value="Low">Low</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+            </div>
+
+
+            <button type="submit" id="btn-submit-ticket" class="btn btn-primary btn-block">
+              Verify &amp; Submit Ticket
+            </button>
+          </form>
+        </div>
+
+        <!-- Verification Results Panel Column -->
+        <div class="modal-results-col" id="verification-panel">
+          <div class="results-placeholder">
+            <div class="placeholder-icon">🛡️</div>
+            <h3>Real-time Deduplication</h3>
+            <p>Fill out the ticket form on the left and submit it. Our AI engine will compute embeddings and evaluate duplicates before inserting the record into the database.</p>
+          </div>
+
+          <!-- Loading state -->
+          <div class="results-loading hidden" id="results-loading-state">
+            <div class="pulse-loader"></div>
+            <h3>Checking Semantic Space...</h3>
+            <p>Analyzing context embeddings &amp; consulting Google Gemini models for validation...</p>
+          </div>
+
+          <!-- Result: Success (Accepted) -->
+          <div class="results-success hidden" id="results-success-state">
+            <div class="success-icon">✓</div>
+            <h3>Ticket Created Successfully!</h3>
+            <p>No identical duplicate ticket was detected. The ticket has been recorded in the SQLite database.</p>
+            <div id="minor-matches-container" class="minor-matches-section hidden">
+              <h4>Potential Similarities Checked:</h4>
+              <div class="matches-list" id="minor-matches-list"></div>
+            </div>
+          </div>
+
+          <!-- Result: Duplicate Blocked -->
+          <div class="results-blocked hidden" id="results-blocked-state">
+            <div class="blocked-header">
+              <div class="blocked-icon">⚠️</div>
+              <div class="blocked-title">
+                <h3>Duplicate Detected</h3>
+                <p>Submission Blocked</p>
+              </div>
+            </div>
+            <p class="blocked-description">Gemini determined this ticket is a duplicate of an existing record (Verdict: <strong>YES</strong>). Submission has been blocked to prevent database clutter.</p>
+            
+            <div class="blocked-matches-section">
+              <h4>Critical Duplicate Matches:</h4>
+              <div class="matches-list" id="blocked-matches-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

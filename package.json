@@ -1,0 +1,17 @@
+{
+  "name": "smart-ticket-deduplicator",
+  "version": "1.0.0",
+  "description": "A support ticket triage application with semantic deduplication",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@google/genai": "*",
+    "better-sqlite3": "*",
+    "dotenv": "*",
+    "express": "*"
+  }
+}
